@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: Home(),
   ));
 }
@@ -17,18 +18,23 @@ class _HomeState extends State<Home> {
   TextEditingController weightController = TextEditingController();
   TextEditingController heightController = TextEditingController();
 
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   String _infoText = "Informe seus dados!";
 
   void _resetFields() {
     weightController.text = "";
     heightController.text = "";
-    _infoText = "Informe seus dados!";
+    setState(() {
+      _infoText = "Informe seus dados!";
+      _formKey = GlobalKey<FormState>();
+    });
   }
 
   void _calculete() {
     setState(() {
-      double weight = double.parse(weightController.toString());
-      double height = double.parse(heightController.toString()) / 100;
+      double weight = double.parse(weightController.text.toString());
+      double height = double.parse(heightController.text.toString());
       double imc = weight / (height * height);
       if (imc < 18.6) {
         _infoText = "Abaixo do peso (${imc.toStringAsPrecision(3)})";
@@ -49,8 +55,9 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      //debugShowCheckModeBanner: false,
       appBar: AppBar(
-        title: Text("Calculadora de IMC"),
+        title: const Text("Calculadora de IMC"),
         centerTitle: true,
         backgroundColor: Colors.green,
         actions: [
@@ -62,51 +69,71 @@ class _HomeState extends State<Home> {
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Icon(Icons.person_outlined, size: 120.0, color: Colors.green),
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: "Peso (Kg)",
-                  labelStyle: TextStyle(color: Colors.green)),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.green, fontSize: 25.0),
-              controller: weightController,
-            ),
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  labelText: "Altura (cm)",
-                  labelStyle: TextStyle(color: Colors.green)),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.green, fontSize: 25.0),
-              controller: heightController,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-              child: SizedBox(
-                  height: 50.0,
-                  child: ElevatedButton(
-                    style: const ButtonStyle(
-                      backgroundColor:
-                          MaterialStatePropertyAll<Color>(Colors.green),
-                    ),
-                    onPressed: _calculete,
-                    child: const Text(
-                      'Calcular',
-                      style: TextStyle(color: Colors.white, fontSize: 25.0),
-                    ),
-                  )),
-            ),
-            Text(
-              _infoText,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.green, fontSize: 25.0),
-            )
-          ],
+        padding: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Icon(Icons.person_outlined,
+                  size: 120.0, color: Colors.green),
+              TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                    labelText: "Peso (Kg)",
+                    labelStyle: TextStyle(color: Colors.green)),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.green, fontSize: 25.0),
+                controller: weightController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Insira o seu peso!";
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                    labelText: "Altura (m)",
+                    labelStyle: TextStyle(color: Colors.green)),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.green, fontSize: 25.0),
+                controller: heightController,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Insira o sua altura!";
+                  }
+                  return null;
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                child: SizedBox(
+                    height: 50.0,
+                    child: ElevatedButton(
+                      style: const ButtonStyle(
+                        backgroundColor:
+                            MaterialStatePropertyAll<Color>(Colors.green),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          _calculete();
+                        }
+                      },
+                      child: const Text(
+                        'Calcular',
+                        style: TextStyle(color: Colors.white, fontSize: 25.0),
+                      ),
+                    )),
+              ),
+              Text(
+                _infoText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.green, fontSize: 25.0),
+              )
+            ],
+          ),
         ),
       ),
     );
